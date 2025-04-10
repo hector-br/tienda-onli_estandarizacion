@@ -180,6 +180,7 @@ function cerrarCarrito() {
     }
 }
 
+
 // Función de búsqueda lineal para buscar un producto por nombre
 function buscarProducto(query) {
     query = query.toLowerCase().trim();
@@ -222,37 +223,82 @@ function confirmarCompra() {
     document.getElementById('ventana-pago').style.display = 'block';
 }
 
-// Función para cerrar el ventana de pago
-function cerrarVentanaPago() {
-    document.getElementById('ventana-pago').style.display = 'none';
-}
 
-// Función para manejar la confirmación de compra
+/** */
+    // Función para manejar la confirmación de compra
 document.getElementById('confirmar-pago').addEventListener('click', () => {
-    // Generar el mensaje con los detalles de los productos en el carrito
+    const correo = document.getElementById('correo').value;
+    if (!correo || !validarCorreo(correo)) {
+        alert("El correo electrónico ingresado no es válido.");
+        return;
+    }
+
+    const metodoPago = obtenerMetodoPago();
+    if (!metodoPago) {
+        alert("Selecciona un método de pago válido.");
+        return;
+    }
+
+    // Mostrar la confirmación de compra
     const mensaje = carrito.map(producto => `${producto.nombre} - Talla: ${producto.talla} - $${producto.precio}`).join("\n");
     const totalCompra = carrito.reduce((sum, producto) => sum + producto.precio, 0);
 
-    // Mostrar la confirmación de compra
     alert(`
         Detalles de la compra:
         ${mensaje}
         
         Total: $${totalCompra.toFixed(2)}
         
+        Método de pago: ${metodoPago}
+        
         Compra confirmada. ¡Gracias por tu compra!
     `);
+
+    // Guardar el historial de compras en el localStorage
+    guardarHistorialDeCompra(correo, carrito, metodoPago);
 
     // Vaciar el carrito después de la compra
     vaciarCarrito();
     cerrarVentanaPago();
 });
 
-// Función para obtener el método de pago (sin validación)
+// Función para validar el correo
+function validarCorreo(correo) {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(correo);
+}
+
+// Función para obtener el método de pago seleccionado
 function obtenerMetodoPago() {
     const opciones = document.getElementsByName('metodo');
-    return metodo; // Retornar un valor predeterminado o simplemente dejarlo así
+    for (let i = 0; i < opciones.length; i++) {
+        if (opciones[i].checked) {
+            return opciones[i].value;
+        }
+    }
+    return null; // Si no se seleccionó un método
 }
+/**/
+
+
+
+// Función para cerrar el ventana de pago
+function cerrarVentanaPago() {
+    document.getElementById('ventana-pago').style.display = 'none';
+}
+
+// Función para vaciar el carrito
+function vaciarCarrito() {
+    carrito = [];
+    total = 0;
+    actualizarCarrito();
+}
+
+// Función para obtener el método de pago (sin validación)
+// function obtenerMetodoPago() {
+//     const opciones = document.getElementsByName('metodo');
+//     return metodo; // Retornar un valor predeterminado o simplemente dejarlo así
+// }
 
 // Función para guardar el historial de compra
 function guardarHistorialDeCompra(correo, carrito, metodoPago) {
@@ -267,13 +313,6 @@ function guardarHistorialDeCompra(correo, carrito, metodoPago) {
     let historialDeCompras = JSON.parse(localStorage.getItem('historialCompras')) || [];
     historialDeCompras.push(historial);
     localStorage.setItem('historialCompras', JSON.stringify(historialDeCompras));
-}
-
-// Función para vaciar el carrito
-function vaciarCarrito() {
-    carrito = [];
-    total = 0;
-    actualizarCarrito();
 }
 
 
